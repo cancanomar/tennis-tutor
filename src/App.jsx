@@ -312,11 +312,25 @@ export default function App() {
     else if (shape === 'triangle') element = <div className={classes} style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />;
     else if (shape === 'diamond') element = <div className={`${classes} rotate-45 border`} />;
 
+    // Determine if we should overlay inside the shape or render as a sub-pill
+    const isShort = settings.nameModeIndex === 1 || settings.nameModeIndex === 2;
+    const isFullName = settings.nameModeIndex === 3;
+
     return (
       <div className="relative flex flex-col items-center">
+        {/* Base Shape */}
         {element}
-        {formattedName && (
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-900 pointer-events-none drop-shadow-[0_1px_0.5px_rgba(255,255,255,0.8)]">
+
+        {/* Short Initials (1 or 2 letters): Rendered on top of the shape with z-20 */}
+        {formattedName && isShort && (
+          <span className="absolute inset-0 z-20 flex items-center justify-center text-[10px] font-black text-slate-950 pointer-events-none drop-shadow-[0_1px_1.5px_rgba(255,255,255,0.95)]">
+            {formattedName}
+          </span>
+        )}
+
+        {/* Full Name: Rendered as a legible, anti-glare mini-pill right beneath the shape */}
+        {formattedName && isFullName && (
+          <span className="absolute top-full mt-1.5 z-20 bg-slate-950/90 text-white border border-slate-700/80 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide pointer-events-none whitespace-nowrap shadow-md">
             {formattedName}
           </span>
         )}
