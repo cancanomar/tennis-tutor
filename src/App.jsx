@@ -312,23 +312,21 @@ export default function App() {
     else if (shape === 'triangle') element = <div className={classes} style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />;
     else if (shape === 'diamond') element = <div className={`${classes} rotate-45 border`} />;
 
-    // Determine if we should overlay inside the shape or render as a sub-pill
     const isShort = settings.nameModeIndex === 1 || settings.nameModeIndex === 2;
     const isFullName = settings.nameModeIndex === 3;
 
     return (
-      <div className="relative flex flex-col items-center">
-        {/* Base Shape */}
+      <div className="relative flex flex-col items-center justify-center">
         {element}
-
+        
         {/* Short Initials (1 or 2 letters): Rendered on top of the shape with z-20 */}
         {formattedName && isShort && (
-          <span className="absolute inset-0 z-20 flex items-center justify-center text-[10px] font-black text-slate-950 pointer-events-none drop-shadow-[0_1px_1.5px_rgba(255,255,255,0.95)]">
+          <span className="absolute z-20 flex items-center justify-center text-[11px] font-black text-slate-950 pointer-events-none drop-shadow-[0_1px_1.5px_rgba(255,255,255,1)]">
             {formattedName}
           </span>
         )}
 
-        {/* Full Name: Rendered as a legible, anti-glare mini-pill right beneath the shape */}
+        {/* Full Name: Rendered as an anti-glare pill beneath the shape to prevent cutoff */}
         {formattedName && isFullName && (
           <span className="absolute top-full mt-1.5 z-20 bg-slate-950/90 text-white border border-slate-700/80 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide pointer-events-none whitespace-nowrap shadow-md">
             {formattedName}
@@ -343,11 +341,11 @@ export default function App() {
       <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col p-6 items-center justify-center">
         <div className="w-full max-w-md bg-slate-800 p-6 rounded-3xl shadow-2xl space-y-6 border border-slate-700">
           <div className="text-center space-y-1">
-            <h1 className="text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
+            <h1 className="text-4xl font-black tracking-tight text-white drop-shadow-md flex items-center justify-center gap-2">
               <span className="bg-green-500 w-4 h-4 rounded-full animate-bounce"></span>
               TennisTutor
             </h1>
-            <p className="text-slate-400 text-sm">Official ITF-Compliant Assistant</p>
+            <p className="text-slate-200 text-sm font-medium drop-shadow-sm">Official ITF-Compliant Assistant</p>
           </div>
 
           <div className="space-y-2">
@@ -441,24 +439,11 @@ export default function App() {
       {/* TOP INSTRUCTION / SCORE ZONE */}
       <div className="px-4 py-2 min-h-[64px] flex flex-col justify-center bg-slate-950 shrink-0 relative">
         {settings.umpireMode && (
-           <p className="text-slate-300 text-xs sm:text-sm leading-snug animate-fade-in pr-24">
+           <p className="text-slate-300 text-xs sm:text-sm leading-snug animate-fade-in pr-2">
              {activeData.umpireText}
              {activeData.stakes && <span className="block text-red-400 font-bold mt-0.5 animate-pulse">{activeData.stakes}</span>}
            </p>
         )}
-        
-        <div className="absolute right-4 top-2 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-mono shadow-xl flex gap-3">
-          <div className="flex flex-col items-center">
-            <span className="text-slate-500 text-[10px]">GAMES</span>
-            <span className="text-white font-bold">{state.games[0]} - {state.games[1]}</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-slate-500 text-[10px]">POINTS</span>
-            <span className="text-yellow-400 font-bold">
-              {state.isTiebreak ? `${state.tiebreakPoints[0]}-${state.tiebreakPoints[1]}` : `${SCORE_STRINGS[state.points[0]]}-${SCORE_STRINGS[state.points[1]]}`}
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* NO-AD RECEIVER DECIDING SIDE SELECTOR (ITF Rule Compliance) */}
