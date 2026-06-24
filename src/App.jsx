@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Volume2, Mic, RotateCcw, Trophy, Info, Eye, CheckCircle2, AlertTriangle } from 'lucide-react';
 
-// --- CONFIG & CONSTANTS ---
 const PLAYERS_CONFIG = [
   { id: 0, team: 0, shape: 'square', colorClass: 'bg-blue-500', borderColor: 'border-blue-300', side: 'deuce' },
   { id: 1, team: 0, shape: 'circle', colorClass: 'bg-yellow-400', borderColor: 'border-yellow-200', side: 'ad' },
@@ -15,7 +14,6 @@ const NAME_MODES = ['None', 'Initial', '2 Letters', 'Full Name'];
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 
 export default function App() {
-  // --- STATE ---
   const [setupMode, setSetupMode] = useState(true);
   
   const [settings, setSettings] = useState({
@@ -106,7 +104,6 @@ export default function App() {
       // No-Ad Scoring Rules Engine (ITF Appendix V)
       if (settings.noAdScoring) {
         if (pts[w] === 3 && pts[l] === 3) {
-          // Deciding point is played, winner wins the game immediately
           winGame(nextState, w);
         } else if (pts[w] === 3) {
           winGame(nextState, w);
@@ -129,9 +126,8 @@ export default function App() {
       }
 
       if (!nextState.matchWon && pts[w] !== 0) {
-        // Alternate serving side for next point
         nextState.serveSide = nextState.serveSide === 'deuce' ? 'ad' : 'deuce';
-        nextState.noAdReceiverChoice = null; // Reset choice
+        nextState.noAdReceiverChoice = null;
       }
     }
     setState(nextState);
@@ -182,7 +178,6 @@ export default function App() {
     setState(s => ({ ...s, noAdReceiverChoice: side, serveSide: side }));
   };
 
-  // --- DERIVED DATA ---
   const activeData = useMemo(() => {
     if (setupMode) return null;
     const serverConf = PLAYERS_CONFIG[state.serverIndex];
@@ -190,7 +185,6 @@ export default function App() {
     const serverTeamId = serverConf.team;
     const receiverTeamId = 1 - serverTeamId;
     
-    // Choose receiver target based on selected side (particularly important for No-Ad deciding point)
     const activeSide = state.noAdReceiverChoice || state.serveSide;
     const receiverConf = PLAYERS_CONFIG.find(p => 
       p.team === receiverTeamId && 
@@ -286,6 +280,7 @@ export default function App() {
   };
 
   const getFormattedName = (name, index) => {
+    if (!name) return "";
     if (index === 0) return ""; // None
     if (index === 1) return name.charAt(0).toUpperCase(); // Initial
     if (index === 2) return name.substring(0, 2).toUpperCase(); // 2 Letters
@@ -301,9 +296,10 @@ export default function App() {
     return `${settings.playerNames[teamId === 0 ? 0 : 2]} & ${settings.playerNames[teamId === 0 ? 1 : 3]}`;
   };
 
-  // --- RENDERING SHAPES ---
   const renderShape = (shape, colorClass, border, name, sizeClass = "w-7 h-7", glow = false) => {
-    const formattedName = getFormattedName(name, settings.nameModeIndex);
+    // If name is passed explicitly as null, we bypass text completely (used for tiny buttons)
+    const formattedName = name !== null ? getFormattedName(name, settings.nameModeIndex) : "";
+    
     const classes = `${sizeClass} ${colorClass} ${border} shadow-lg shadow-black/60 z-10 flex items-center justify-center transition-all duration-500 ease-in-out relative ${glow ? 'ring-4 ring-white/50' : ''}`;
     
     let element;
@@ -312,23 +308,13 @@ export default function App() {
     else if (shape === 'triangle') element = <div className={classes} style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />;
     else if (shape === 'diamond') element = <div className={`${classes} rotate-45 border`} />;
 
-    const isShort = settings.nameModeIndex === 1 || settings.nameModeIndex === 2;
-    const isFullName = settings.nameModeIndex === 3;
-
     return (
-      <div className="relative flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center gap-1.5">
         {element}
         
-        {/* Short Initials (1 or 2 letters): Rendered on top of the shape with z-20 */}
-        {formattedName && isShort && (
-          <span className="absolute z-20 flex items-center justify-center text-[11px] font-black text-slate-950 pointer-events-none drop-shadow-[0_1px_1.5px_rgba(255,255,255,1)]">
-            {formattedName}
-          </span>
-        )}
-
-        {/* Full Name: Rendered as an anti-glare pill beneath the shape to prevent cutoff */}
-        {formattedName && isFullName && (
-          <span className="absolute top-full mt-1.5 z-20 bg-slate-950/90 text-white border border-slate-700/80 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide pointer-events-none whitespace-nowrap shadow-md">
+        {/* Name is placed securely in document flow UNDERNEATH the shape */}
+        {formattedName && (
+          <span className="bg-slate-950/80 text-white border border-slate-700/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide shadow-md whitespace-nowrap z-20">
             {formattedName}
           </span>
         )}
@@ -340,12 +326,12 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col p-6 items-center justify-center">
         <div className="w-full max-w-md bg-slate-800 p-6 rounded-3xl shadow-2xl space-y-6 border border-slate-700">
-          <div className="text-center space-y-1">
-            <h1 className="text-4xl font-black tracking-tight text-white drop-shadow-md flex items-center justify-center gap-2">
-              <span className="bg-green-500 w-4 h-4 rounded-full animate-bounce"></span>
+          <div className="text-center space-y-3 mb-2">
+            <h1 className="text-5xl font-black tracking-tighter text-white drop-shadow-xl flex items-center justify-center gap-3">
+              <span className="bg-green-500 w-5 h-5 rounded-full animate-bounce shadow-[0_0_15px_rgba(34,197,94,0.8)]"></span>
               TennisTutor
             </h1>
-            <p className="text-slate-200 text-sm font-medium drop-shadow-sm">Official ITF-Compliant Assistant</p>
+            <p className="text-white font-bold drop-shadow-md text-base">Official ITF-Compliant Assistant</p>
           </div>
 
           <div className="space-y-2">
@@ -364,7 +350,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Settings Section */}
           <div className="bg-slate-900/80 p-4 rounded-2xl space-y-3 border border-slate-700/50">
             <div className="flex justify-between items-center">
               <div>
@@ -421,7 +406,6 @@ export default function App() {
   return (
     <div className="fixed inset-0 bg-slate-950 flex flex-col font-sans overflow-hidden select-none">
       
-      {/* HEADER: Umpire, Call & Dynamic Name Mode Toggles */}
       <div className="px-4 py-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center z-10 shrink-0">
         <div className="flex gap-2.5">
           <button onClick={() => setSettings(s => ({...s, umpireMode: !s.umpireMode}))} className={`flex items-center gap-1 text-xs font-bold px-2 py-1.5 rounded transition ${settings.umpireMode ? 'bg-slate-700 text-white' : 'text-slate-500'}`}>
@@ -436,17 +420,15 @@ export default function App() {
         </div>
       </div>
 
-      {/* TOP INSTRUCTION / SCORE ZONE */}
       <div className="px-4 py-2 min-h-[64px] flex flex-col justify-center bg-slate-950 shrink-0 relative">
         {settings.umpireMode && (
-           <p className="text-slate-300 text-xs sm:text-sm leading-snug animate-fade-in pr-2">
+           <p className="text-slate-300 text-xs sm:text-sm leading-snug animate-fade-in pr-2 text-center sm:text-left">
              {activeData.umpireText}
              {activeData.stakes && <span className="block text-red-400 font-bold mt-0.5 animate-pulse">{activeData.stakes}</span>}
            </p>
         )}
       </div>
 
-      {/* NO-AD RECEIVER DECIDING SIDE SELECTOR (ITF Rule Compliance) */}
       {activeData.isNoAdDecidingPoint && !state.noAdReceiverChoice && (
         <div className="bg-blue-950/80 border-b border-blue-800/80 px-4 py-3 flex flex-col items-center gap-2 animate-fade-in z-20">
           <div className="flex items-center gap-1.5 text-xs text-blue-200">
@@ -464,11 +446,10 @@ export default function App() {
         </div>
       )}
 
-      {/* COURT VISUALIZER */}
+      {}
       <div className="flex-1 relative bg-slate-900/50 p-2 py-4 overflow-hidden flex items-center justify-center">
         <div className="relative w-[92%] max-w-[340px] h-full max-h-[600px] bg-[#166534] border-4 border-white shadow-2xl mx-auto rounded-sm overflow-hidden">
           
-          {/* Court Lines */}
           <div className="absolute top-0 bottom-0 left-[15%] right-[15%] border-l-2 border-r-2 border-white/80" />
           <div className="absolute top-[25%] bottom-[25%] left-[15%] right-[15%] border-t-2 border-b-2 border-white/80" />
           <div className="absolute top-[25%] bottom-[25%] left-[50%] border-l-2 border-white/80" />
@@ -476,7 +457,6 @@ export default function App() {
           <div className="absolute bottom-0 h-2 left-[50%] border-l-2 border-white/80" />
           <div className="absolute top-[50%] left-0 right-0 border-t-4 border-slate-300/80 shadow-[0_2px_4px_rgba(0,0,0,0.5)] z-0" />
 
-          {/* Singles Alleys Dimming */}
           {settings.mode === 'singles' && (
             <>
               <div className="absolute top-0 bottom-0 left-0 w-[15%] bg-black/50 z-0 transition-opacity" />
@@ -484,7 +464,6 @@ export default function App() {
             </>
           )}
 
-          {/* Static Point-to-Point Serving Arrow with scalable Markers */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
              <defs>
                <marker id="serve-arrow" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -509,7 +488,6 @@ export default function App() {
              })()}
           </svg>
 
-          {/* Dynamic Player Avatars */}
           {PLAYERS_CONFIG.filter(p => settings.mode === 'doubles' || p.id === 0 || p.id === 2).map((player) => {
             const pos = getPlayerPosition(player);
             const isServer = player.id === activeData?.serverConf?.id;
@@ -521,7 +499,6 @@ export default function App() {
                 className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-out z-10 flex flex-col items-center"
                 style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
               >
-                {/* Speech Bubble / Call Mode Script */}
                 {settings.callMode && isServer && (
                   <div className="absolute z-30 bottom-full mb-3.5 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-3 py-1.5 rounded-xl font-bold text-xs shadow-xl whitespace-nowrap animate-bounce">
                     Say: {activeData.callText}
@@ -533,14 +510,12 @@ export default function App() {
               </div>
             );
           })}
-
         </div>
       </div>
 
-      {/* THUMB ZONE CONTROLS - Streamlined purely for swift scoring */}
+      {}
       <div className="h-[22vh] min-h-[140px] bg-slate-800 p-3.5 flex flex-col gap-3 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.6)] shrink-0 pb-safe">
         
-        {/* Row 1: Rally Point Winners */}
         <div className="flex gap-3 flex-1">
            <button 
              onClick={() => handlePoint(0)}
@@ -549,10 +524,11 @@ export default function App() {
            >
              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/25 to-transparent group-active:from-blue-600/40" />
              <div className="flex gap-1 mb-0.5 z-10">
-               {renderShape('square', 'bg-blue-500', 'border-blue-300', settings.playerNames[0], 'w-4 h-4')}
-               {settings.mode === 'doubles' && renderShape('circle', 'bg-yellow-400', 'border-yellow-200', settings.playerNames[1], 'w-4 h-4')}
+               {/* Pass null for name explicitly inside buttons so text isn't duplicated here */}
+               {renderShape('square', 'bg-blue-500', 'border-blue-300', null, 'w-4 h-4')}
+               {settings.mode === 'doubles' && renderShape('circle', 'bg-yellow-400', 'border-yellow-200', null, 'w-4 h-4')}
              </div>
-             <span className="font-bold text-white text-xs sm:text-sm z-10 text-center leading-tight px-1">
+             <span className="font-bold text-white text-xs sm:text-sm z-10 text-center leading-tight px-1 mt-1">
                {getTeamName(0)}<br/>Won Point
              </span>
            </button>
@@ -564,16 +540,15 @@ export default function App() {
            >
              <div className="absolute inset-0 bg-gradient-to-br from-red-600/25 to-transparent group-active:from-red-600/40" />
              <div className="flex gap-1 mb-0.5 z-10">
-               {renderShape('triangle', 'bg-red-500', 'border-red-300', settings.playerNames[2], 'w-4 h-4')}
-               {settings.mode === 'doubles' && renderShape('diamond', 'bg-green-500', 'border-green-300', settings.playerNames[3], 'w-4 h-4')}
+               {renderShape('triangle', 'bg-red-500', 'border-red-300', null, 'w-4 h-4')}
+               {settings.mode === 'doubles' && renderShape('diamond', 'bg-green-500', 'border-green-300', null, 'w-4 h-4')}
              </div>
-             <span className="font-bold text-white text-xs sm:text-sm z-10 text-center leading-tight px-1">
+             <span className="font-bold text-white text-xs sm:text-sm z-10 text-center leading-tight px-1 mt-1">
                {getTeamName(1)}<br/>Won Point
              </span>
            </button>
         </div>
 
-        {/* Row 2: Ergonomic Undo Panel */}
         <button 
           onClick={handleUndo} 
           disabled={state.history.length === 0} 
@@ -583,7 +558,6 @@ export default function App() {
         </button>
       </div>
 
-      {/* ITF CHANGE ENDS OVERLAY (Odd game switch) */}
       {state.pendingSideSwitch && !state.matchWon && (
         <div className="absolute inset-0 z-50 bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 animate-fade-in">
           <RotateCcw className="w-16 h-16 text-yellow-400 mb-6 animate-spin-slow" />
@@ -598,7 +572,6 @@ export default function App() {
         </div>
       )}
 
-      {/* ITF MATCH COMPLETED OVERLAY */}
       {state.matchWon && (
         <div className="absolute inset-0 z-50 bg-slate-900/95 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-fade-in">
           <Trophy className="w-20 h-20 text-yellow-400 mb-6 drop-shadow-[0_0_15px_rgba(234,179,8,0.4)]" />
